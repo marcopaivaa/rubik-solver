@@ -11,6 +11,8 @@ void back(int direction);
 void top(int direction);
 void down(int direction);
 void rotate(int deg, int pin, int min, int max);
+void full_rotate(int direction);
+void exec_command(int com);
 void init_servos();
 
 #define LEFT_ARM_PIN            6
@@ -48,8 +50,12 @@ void init_servos();
 #define TRAIL_MAX_DEGREE        108
 #define TRAIL_MIN_DEGREE        0
 
+#define DEBUG                   1
+#define DEBUG_COMMAND           0 //index of command array
+
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 String commands[] = {"L", "R", "F", "B", "T", "D", "L'", "R'", "F'", "B'", "T'", "D'"};
+int debug_executed = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -62,34 +68,14 @@ void setup() {
 }
 
 void loop() {
-    int r = rand() % 12;
-    //Serial.println("[*] Running: %s", commands[r]);
-    switch (r)
-    {
-        case 0:
-            left(1); break;
-        case 1:
-            right(1); break;
-        case 2:
-            front(1); break;
-        case 3:
-            back(1); break;
-        case 4:
-            top(1); break;
-        case 5:
-            down(1); break;
-        case 6:
-            left(-1); break;
-        case 7:
-            right(-1); break;
-        case 8:
-            front(-1); break;
-        case 9:
-            back(-1); break;
-        case 10:
-            top(-1); break;
-        case 11:
-            down(-1); break;
+    if(DEBUG == 1 && debug_executed == 0){
+        exec_command(DEBUG_COMMAND);
+        debug_executed = 1;
+        exit(0);
+    }else{
+        int r = rand() % 12;
+        //Serial.println("[*] Running: %s", commands[r]);
+        exec_command(r);
     }
 }
 
@@ -133,49 +119,16 @@ void back(int direction){
 
 
 void top(int direction){
-    rotate(TRAIL_MIN_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MIN_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
-    rotate(ARM_MAX_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
-    rotate(ARM_MAX_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
-
-    rotate(TRAIL_MAX_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
+    full_rotate(1);
     right(direction);
-
-    rotate(TRAIL_MIN_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MIN_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
-    rotate(ARM_DEFAULT_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
-    rotate(ARM_DEFAULT_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
-
-    rotate(TRAIL_MAX_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN,RIGHTT_TRAIL_MINRIGHTNT_TRAIL_MAX, 0);
-    
+    full_rotate(-1);
 }
 
 
 void down(int direction){
-    rotate(TRAIL_MIN_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MIN_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
-    rotate(ARM_MAX_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
-    rotate(ARM_MAX_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
-
-    rotate(TRAIL_MAX_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
+    full_rotate(1);
     left(direction);
-
-    rotate(TRAIL_MIN_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MIN_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
-
-    rotate(ARM_DEFAULT_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
-    rotate(ARM_DEFAULT_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
-
-    rotate(TRAIL_MAX_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
-    rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN,RIGHTT_TRAIL_MINRIGHTNT_TRAIL_MAX, 0);
+    full_rotate(-1);
 }
 
 
@@ -185,6 +138,37 @@ void rotate(int deg, int pin, int min, int max, int delay_bit){
     if(delay_bit == 1){
         delay(1000);
     }
+}
+
+void full_rotate(int direction){
+
+    rotate(TRAIL_MIN_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
+    rotate(TRAIL_MIN_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
+
+
+    if(direction > 0){ //top-down position
+        
+        rotate(ARM_MAX_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
+        rotate(ARM_MIN_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
+
+    }else{ //default position
+
+        rotate(ARM_MIN_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
+        rotate(ARM_MAX_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
+
+    }
+
+    rotate(TRAIL_MAX_DEGREE, LEFT_TRAIL_PIN, LEFT_TRAIL_MIN, LEFT_TRAIL_MAX, 0);
+    rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
+
+    rotate(TRAIL_MIN_DEGREE, FRONT_TRAIL_PIN, FRONT_TRAIL_MIN, FRONT_TRAIL_MAX, 0);
+    rotate(TRAIL_MIN_DEGREE, BACK_TRAIL_PIN, BACK_TRAIL_MIN, BACK_TRAIL_MAX, 0);
+
+    rotate(ARM_DEFAULT_DEGREE, FRONT_ARM_PIN, FRONT_ARM_MIN, FRONT_ARM_MAX, 0);
+    rotate(ARM_DEFAULT_DEGREE, BACK_ARM_PIN, BACK_ARM_MIN, BACK_ARM_MAX, 0);
+
+    rotate(TRAIL_MAX_DEGREE, FRONT_TRAIL_PIN, FRONT_TRAIL_MIN, FRONT_TRAIL_MAX, 0);
+    rotate(TRAIL_MAX_DEGREE, BACK_TRAIL_PIN, BACK_TRAIL_MIN, BACK_TRAIL_MAX, 0);
 }
 
 void init_servos(){
@@ -206,4 +190,33 @@ void init_servos(){
     rotate(TRAIL_MAX_DEGREE, RIGHT_TRAIL_PIN, RIGHT_TRAIL_MIN, RIGHT_TRAIL_MAX, 0);
     rotate(TRAIL_MAX_DEGREE, FRONT_TRAIL_PIN, FRONT_TRAIL_MIN, FRONT_TRAIL_MAX, 0);
     rotate(TRAIL_MAX_DEGREE, BACK_TRAIL_PIN, BACK_TRAIL_MIN, BACK_TRAIL_MAX, 0);
+}
+
+void exec_command(int com){
+     switch (com){
+        case 0:
+            left(1); break;
+        case 1:
+            right(1); break;
+        case 2:
+            front(1); break;
+        case 3:
+            back(1); break;
+        case 4:
+            top(1); break;
+        case 5:
+            down(1); break;
+        case 6:
+            left(-1); break;
+        case 7:
+            right(-1); break;
+        case 8:
+            front(-1); break;
+        case 9:
+            back(-1); break;
+        case 10:
+            top(-1); break;
+        case 11:
+            down(-1); break;
+    }
 }
