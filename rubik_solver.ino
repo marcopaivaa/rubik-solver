@@ -23,8 +23,8 @@ void init_servos();
 #define LEFT_TRAIL_MAX          580
         
 #define RIGHT_ARM_PIN           14 
-#define RIGHT_ARM_MIN           123 
-#define RIGHT_ARM_MAX           571 
+#define RIGHT_ARM_MIN           115 
+#define RIGHT_ARM_MAX           570 
 #define RIGHT_TRAIL_PIN         12
 #define RIGHT_TRAIL_MIN         123 
 #define RIGHT_TRAIL_MAX         580 
@@ -91,7 +91,7 @@ void loop() {
         {
           for(int i = 0; i < numCommands; i++){
             if(String(ptr) == commands[i]){
-              Serial.println(ptr);
+              Serial.println(String(ptr));
               exec_command(i);
             }
           } 
